@@ -1,0 +1,69 @@
+"use strict";
+
+var gulp = require("gulp");
+var webpackstream = require("webpack-stream");
+var webpack = require('webpack');
+var rimraf = require('rimraf');
+var exec = require('child_process').exec;
+
+gulp.task('mainBundle', function() {
+  console.log('mainBundle');
+  let cfg = {
+    mode: "none",
+    output: {
+      filename: "main.js",
+      globalObject: "this"
+    },
+    performance: { hints: false},
+    devtool: 'source-map',
+    node: false
+  }
+  return gulp
+    .src("./src/index.js")
+    .pipe(webpackstream(cfg, webpack))
+    .pipe(gulp.dest("./public/javascripts"))
+});
+
+function startServer(cb) {
+  exec('npm start', function (err, stdout, stderr) {
+    console.log(stdout);
+    console.log(stderr);
+    cb(err);
+  });
+}
+
+function createMainBundle(cb) {
+  console.log('create js');
+
+  rimraf.sync('./public/javascripts/*');
+
+  let cfg = {
+    mode: "none",
+    output: {
+      filename: "main.js",
+      globalObject: "this"
+    },
+    performance: { hints: false},
+    devtool: 'source-map',
+    node: false
+  }
+  gulp
+    .src("./src/index.js")
+    .pipe(webpackstream(cfg, webpack))
+    .pipe(gulp.dest("./public/javascripts"))
+
+}
+
+gulp.task('watch', function(cb){
+  gulp.watch('./src/**/*', createMainBundle);
+})
+
+function onChange() {
+  gulp.watch('./src/**/*', createMainBundle);
+}
+
+
+gulp.task('default', function(cb){
+  gulp.series('watch');
+  cb()
+})
